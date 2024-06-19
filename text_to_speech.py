@@ -1,6 +1,6 @@
 """
 In this file, I developed tqo functions. One for converting the text into audio
-And one for playong the audio
+And one for playing the audio
 
 """
 import pytesseract
@@ -8,8 +8,6 @@ from gtts import gTTS
 import pygame
 import os
 
-# Tesseract path (assume installed in /usr/bin/tesseract on Ubuntu)
-pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 def text_to_speech(text, lang='en'):
     """
@@ -26,7 +24,7 @@ def text_to_speech(text, lang='en'):
 
 def play_audio(audio_file):
     """
-    THe function plays the audio file
+    THe function plays the audio file using pygame library
     :param audio_file: The audio file to play
     :return: None
     """
@@ -37,13 +35,15 @@ def play_audio(audio_file):
         continue
     pygame.mixer.quit()
 
+    # Clean up the audio file
+    if os.path.exists(audio_file):
+        os.remove(audio_file)
 
 
-audio_file = text_to_speech("My name is Elvis. And I am a developer!")
 
-# Play the audio
-play_audio(audio_file)
+if __name__ == '__main__':
+    audio_file = text_to_speech("My name is Elvis. And I am a developer!")
+    # Play the audio
+    play_audio(audio_file)
 
-# Clean up the audio file
-if os.path.exists(audio_file):
-    os.remove(audio_file)
+
