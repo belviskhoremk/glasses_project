@@ -39,11 +39,11 @@ def play_audio(audio_file):
 
 
 
-audio_file = text_to_speech("My name is Elvis. And I am a developer!")
-
-# Play the audio
-play_audio(audio_file)
+# audio_file = text_to_speech("My name is Elvis. And I am a developer!")
+#
+# # Play the audio
+# play_audio(audio_file)
 
 # Clean up the audio file
-if os.path.exists(audio_file):
-    os.remove(audio_file)
+# if os.path.exists(audio_file):
+#     os.remove(audio_file)
