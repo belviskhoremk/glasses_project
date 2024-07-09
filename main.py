@@ -15,5 +15,6 @@ def extract_play(path):
         print(e)
 
 if __name__ == '__main__':
-    path = "sample-images/sample_book_content.jpg"
+    # path = "sample-images/sample_book_content.jpg"
+    path = "sample-images/sample_book2.jpg"
     extract_play(path)
