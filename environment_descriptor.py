@@ -10,7 +10,7 @@ import pygame
 from pydub import AudioSegment
 import os
 
-hugging_face_api_key = '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'
+hugging_face_api_key = ''
 # Initialize TTS engine
 engine = pyttsx3.init()
 
