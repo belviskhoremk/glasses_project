@@ -26,8 +26,11 @@ def detect_objects(image_path: str) -> List[Tuple[str, Tuple[float, float, float
     """
     Detect objects in the image and return their names and bounding boxes.
     """
-    model = YOLO('yolov8l.pt')
-    results = model(image_path)
+    # Run the model on the image
+    results = model(image_path,
+                    #conf=0.5,
+                    max_det=5
+                    )
 
     detected_objects = []
     for box in results[0].boxes:
