@@ -13,7 +13,7 @@ import logging
 import os
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-hugging_face_api_key = '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'
+hugging_face_api_key = ''
 # Initialize TTS engine
 engine = pyttsx3.init()
 
