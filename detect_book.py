@@ -7,12 +7,12 @@ from gtts import gTTS
 import pygame
 from langchain_community.llms import HuggingFaceHub
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
+
 
 hugging_face_api_key = "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"
-llm = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct" ,huggingfacehub_api_token = hugging_face_api_key)
-
+llm_llama = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct" ,huggingfacehub_api_token = hugging_face_api_key)
+# llm_gpt4 = ChatOpenAI(model='gpt-4o-mini', openai_api_key=)
 # Load the YOLOv8 model
 model = YOLO("yolov8n.pt")  # Load a pretrained model (recommended for training)
 
@@ -48,7 +48,7 @@ def open_camera_and_detect_book(model):
     """
     Function to open the camera, capture multiple frames, detect the book, and return the cropped book image.
     """
-    cap = cv2.VideoCapture(0)  # Open the default camera
+    cap = cv2.VideoCapture(2)  # Open the default camera
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
 
@@ -104,14 +104,16 @@ def extract_text_from_image(image):
     extracted_text = []
 
     if result is not None:
+        print(result)
         for line in result:
-            for word_info in line:
-                text, confidence = word_info[1]
-                extracted_text.append(text)  # Only append the text, not the confidence
+                print("line  " , line)
+                for word_info in line:
+                    text, confidence = word_info[1]
+                    extracted_text.append(text)  # Only append the text, not the confidence
 
-        return extracted_text
+        return extracted_text , True
     else:
-        return False
+        return "we can't extract text from the book , could you order again to take a new photo again" , False
 
 
 def text_to_speech(text, lang='en'):
@@ -139,46 +141,51 @@ def play_audio(audio_file):
 def completed_response(text, llm):
     template = f"""
     You are an AI designed to help with paragraph completion based on the following text:
-
     Text: {text}
 
-    The above text is extracted from a book picture using OCR. Your task is to complete any cut-off ideas in the extracted text based on the context. If the text is fully extracted and forms a complete idea, you don't need to add extra content. 
-
+    The above text is extracted from a book picture using OCR. Your task is to complete any cut-off ideas in the extracted text based on the context. If the text is fully extracted and forms a complete idea,
+    you don't need to add extra content or don't replace words with other synonym. 
+    
     Complete the text:
     """
 
     chat_template = ChatPromptTemplate.from_template(template)
     chain = chat_template | llm
     response = chain.invoke({"text": text})
-    print("response:", response)
-
-    # Extract the relevant part of the response
-    extracted_response = response.split("Complete the text:")[-1].strip()
-    print("extracted response:", extracted_response)
-
-    return extracted_response
+    # print("response:", response)
+    #
+    #
+    # extracted_response = response.split("Complete the text:")[-1].strip()
+    # print("extracted response:", extracted_response)
 
 
+    return response.content
 
-def main():
+
+
+def read_book():
     # Run the function to open the camera, detect the book, and extract text
     cropped_image = open_camera_and_detect_book(model)
     if cropped_image:
-        extracted_text = extract_text_from_image(cropped_image)
+        extracted_text, status = extract_text_from_image(cropped_image)
 
-        if extracted_text:
+        if status:
             full_text = ' '.join(extracted_text)
 
             print(f"Extracted Text: {full_text}")
-            organized_response = completed_response(full_text , llm)
+            organized_response = completed_response(full_text , llm_llama)
             # Convert text to speech and play the audio
             audio_file = text_to_speech(organized_response)
             play_audio(audio_file)
+            return True
 
         else:
+            audio_file = text_to_speech(extracted_text)
+            play_audio(audio_file)
             print("not word extracted")
+            return False
 
 
-# Run the main function
-if __name__ == "__main__":
-    main()
+# # Run the main function
+# if __name__ == "__main__":
+#     main()
