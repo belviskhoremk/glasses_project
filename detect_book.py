@@ -48,7 +48,7 @@ def open_camera_and_detect_book(model):
     """
     Function to open the camera, capture multiple frames, detect the book, and return the cropped book image.
     """
-    cap = cv2.VideoCapture(0)  # Open the default camera
+    cap = cv2.VideoCapture(3)  # Open the default camera
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
 
@@ -65,10 +65,11 @@ def open_camera_and_detect_book(model):
         for _ in range(10):  # Capture 10 frames
             ret, frame = cap.read()
             if ret:
+                frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
                 frames.append(frame)
                 sharpness_scores.append(evaluate_sharpness(frame))
                 result.write(frame)
-                cv2.imshow("Recording webcam", frame)
+                # cv2.imshow("Recording webcam", frame)
 
                 if cv2.waitKey(25) == 27:
                     cap.release()

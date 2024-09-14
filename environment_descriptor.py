@@ -18,7 +18,7 @@ from PIL import Image
 import time
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-hugging_face_api_key = ''
+hugging_face_api_key = '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'
 arch = 'resnet50'
 # Load LLaMA model from Hugging Face
 text_generator = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct", huggingfacehub_api_token = hugging_face_api_key, task='text-generation', model_kwargs={"temperature": 0.9, "max_new_token":100})
@@ -178,23 +178,40 @@ def play_audio(file_path: str):
     logging.info("Finished playing audio")
 
 
-
 def capture_frame(camera_index: int = 3) -> str:
     """
     Capture a frame from the camera and save it as an image file.
+    Includes a warm-up period and a delay before capture to improve frame quality.
     """
     cap = cv2.VideoCapture(camera_index)
+
+    if not cap.isOpened():
+        raise Exception(f"Failed to open camera with index {camera_index}")
+
+    # Warm-up period: capture and discard frames for 1 second
+    warm_up_time = time.time() + 1
+    while time.time() < warm_up_time:
+        cap.read()
+
+    # Wait for 1 second after warm-up
+    time.sleep(1)
+
+    # Capture frame
     ret, frame = cap.read()
-    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
     cap.release()
 
     if not ret:
         raise Exception("Failed to capture frame from camera")
 
+    # Rotate the frame
+    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+
+    # Save the frame
     timestamp = int(time.time())
     filename = f"frame_{timestamp}.jpg"
     cv2.imwrite(filename, frame)
     logging.info(f"Captured frame saved as {filename}")
+
     return filename
 
 def delete_frame(filename: str):
@@ -206,6 +223,13 @@ def delete_frame(filename: str):
         logging.info(f"Deleted frame file: {filename}")
     except Exception as e:
         logging.error(f"Error deleting frame file {filename}: {str(e)}")
+
+from deep_translator import GoogleTranslator
+
+def translate_text(text, dest_language='hindi'):
+    translated = GoogleTranslator(source='auto', target=dest_language).translate(text)
+    print(f"Translated: {translated}")
+    return translated
 
 def describe_environment():
     """
@@ -225,6 +249,7 @@ def describe_environment():
 
         # 3. Generate environment description
         description = generate_description(objects,environment)
+        # description = translate_text(description)
 
         # 4. Convert description to audio
         audio_file = text_to_speech(description, "environment_description.mp3")
@@ -242,7 +267,7 @@ def describe_environment():
         logging.error(f"An error occurred: {str(e)}")
 
 
-#
+
 # if __name__ == "__main__":
-#     main()
+#     describe_environment()
 

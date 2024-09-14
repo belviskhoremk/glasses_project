@@ -7,8 +7,8 @@ token = "6hxcvUm5/sl99tTsPvp3GhEU25Jw1w3cnIL+mbbvyqXFDPp/KJvEdw=="
 # Initialize Porcupine with your chosen wake word
 
 KEYWORD_PATHS = [
-    "/home/fitsum/Documents/projects/glasses_project/trigger words/read-book_en_linux_v3_0_0.ppn",
-    "/home/fitsum/Documents/projects/glasses_project/trigger words/environment_en_linux_v3_0_0.ppn"
+    "/home/belvisk/PycharmProjects/glasses/trigger words/read-book_en_linux_v3_0_0.ppn",
+    "/home/belvisk/PycharmProjects/glasses/trigger words/environment_en_linux_v3_0_0.ppn"
 ]
 
 # Initialize Porcupine with your custom keywords

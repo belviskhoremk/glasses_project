@@ -72,7 +72,7 @@ def translate_text(text, dest_language='es'):
 
 text = recognize_speech()
 print(text)
-text=translate_text(str(text))
+'''text=translate_text(str(text))
 print(text)
 audio_file = text_to_speech(text)
 play_audio(audio_file)
@@ -81,3 +81,4 @@ play_audio(audio_file)
 # Clean up the audio file
 if os.path.exists(audio_file):
     os.remove(audio_file)
+'''
