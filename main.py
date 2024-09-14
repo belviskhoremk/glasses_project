@@ -2,7 +2,7 @@ import pvporcupine
 import numpy as np
 import sounddevice as sd
 from detect_book import read_book , text_to_speech , play_audio
-
+from environment_descriptor import describe_environment
 token = "6hxcvUm5/sl99tTsPvp3GhEU25Jw1w3cnIL+mbbvyqXFDPp/KJvEdw=="
 # Initialize Porcupine with your chosen wake word
 
@@ -37,6 +37,12 @@ def audio_callback(indata, frames, time, status):
 
         elif keyword_index == 1:
             print("Recognize environment detected!")
+            sound_data = text_to_speech("detecting environment please wait a while to process the environment")
+            play_audio(sound_data)
+            describe_environment()
+            sound_data = text_to_speech("Finished environment description, give instruct for more environment description ")
+            play_audio(sound_data)
+
             # Add your functionality for "recognize environment" here
 
 try:

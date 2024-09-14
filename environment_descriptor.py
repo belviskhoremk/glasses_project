@@ -14,7 +14,7 @@ import os
 import time
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-hugging_face_api_key = ''
+hugging_face_api_key = "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"
 # Initialize TTS engine
 engine = pyttsx3.init()
 
@@ -154,7 +154,7 @@ def play_audio(file_path: str):
 #     except Exception as e:
 #         logging.error(f"An error occurred: {str(e)}")
 
-def capture_frame(camera_index: int = 2) -> str:
+def capture_frame(camera_index: int = 0) -> str:
     """
     Capture a frame from the camera and save it as an image file.
     """
@@ -181,7 +181,7 @@ def delete_frame(filename: str):
     except Exception as e:
         logging.error(f"Error deleting frame file {filename}: {str(e)}")
 
-def main():
+def describe_environment():
     """
     Main function to run the entire pipeline using camera input.
     """
@@ -211,6 +211,6 @@ def main():
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
 
