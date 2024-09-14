@@ -207,7 +207,7 @@ def delete_frame(filename: str):
     except Exception as e:
         logging.error(f"Error deleting frame file {filename}: {str(e)}")
 
-def main():
+def describe_environment():
     """
     Main function to run the entire pipeline using camera input.
     """
@@ -242,7 +242,7 @@ def main():
         logging.error(f"An error occurred: {str(e)}")
 
 
-
-if __name__ == "__main__":
-    main()
+#
+# if __name__ == "__main__":
+#     main()
 
