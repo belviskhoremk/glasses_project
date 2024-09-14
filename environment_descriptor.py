@@ -12,6 +12,14 @@ from pydub import AudioSegment
 import logging
 import os
 import time
+import torch
+from torch.autograd import Variable as V
+import torchvision.models as models
+from torchvision import transforms as trn
+from torch.nn import functional as F
+import os
+from PIL import Image
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 hugging_face_api_key = ''
@@ -21,6 +29,51 @@ engine = pyttsx3.init()
 # Load LLaMA model from Hugging Face
 text_generator = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct", huggingfacehub_api_token = hugging_face_api_key, task='text-generation', model_kwargs={"temperature": 0.9, "max_new_token":100})
 
+env_model_file = 'glasses_project/resnet_model/resnet50_places365.pth.tar'
+
+
+def get_environment(img_path):
+    
+
+    model = models.__dict__[arch](num_classes=365)
+    checkpoint = torch.load(env_model_file, map_location=lambda storage, loc: storage)
+    state_dict = {str.replace(k,'module.',''): v for k,v in checkpoint['state_dict'].items()}
+    model.load_state_dict(state_dict)
+    model.eval()
+
+
+    # load the image transformer
+    centre_crop = trn.Compose([
+            trn.Resize((256,256)),
+            trn.CenterCrop(224),
+            trn.ToTensor(),
+            trn.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    # load the class label
+    file_name = 'glasses_project/resnet_model/categories_places365.txt'
+    classes = list()
+    with open(file_name) as class_file:
+        for line in class_file:
+            classes.append(line.strip().split(' ')[0][3:])
+    classes = tuple(classes)
+
+
+    img = Image.open(img_path)
+    input_img = V(centre_crop(img).unsqueeze(0))
+
+    # forward pass
+    logit = model.forward(input_img)
+    h_x = F.softmax(logit, 1).data.squeeze()
+    probs, idx = h_x.sort(0, True)
+
+    # Get the highest probability and its corresponding class
+    highest_prob = probs[0]
+    best_class = classes[idx[0]]
+
+    print('Highest probability: {:.3f} -> {}'.format(highest_prob, best_class))
+    return best_class
+
 
 # Object Detection using YOLO from Ultralytics
 def detect_objects(image_path: str) -> List[Tuple[str, Tuple[float, float, float, float]]]:
@@ -29,7 +82,7 @@ def detect_objects(image_path: str) -> List[Tuple[str, Tuple[float, float, float
     """
     # Run the model on the image
     results = model(image_path,
-                    #conf=0.5,
+                    conf=0.5,
                     max_det=5
                     )
 
@@ -43,7 +96,7 @@ def detect_objects(image_path: str) -> List[Tuple[str, Tuple[float, float, float
     return detected_objects
 
 
-def generate_description(objects: List[Tuple[str, Tuple[float, float, float, float]]]) -> str:
+def generate_description(objects: List[Tuple[str, Tuple[float, float, float, float]]],environment:str) -> str:
     """
     Generate a concise and precise description of the environment based on detected objects and their positions.
     """
@@ -72,18 +125,19 @@ def generate_description(objects: List[Tuple[str, Tuple[float, float, float, flo
         objects_with_positions.append(f"{obj} in the {position}")
 
     # Create a more focused prompt template
-    template = """
+    template = f"""
     Provide a concise description of the environment for a blind person. Focus on:
     1. Main objects and their relative positions
     2. Any potential obstacles or hazards
     3. General layout and space description
 
     Objects detected: {objects_with_positions}
+    environment type: {environment}
 
     Description:
     """
 
-    prompt = PromptTemplate(input_variables=["objects_with_positions"], template=template)
+    prompt = PromptTemplate(input_variables=["objects_with_positions","environment"], template=template)
     llm_chain = LLMChain(llm=text_generator, prompt=prompt)
     full_description = llm_chain.run(objects_with_positions=", ".join(objects_with_positions))
 
@@ -195,9 +249,13 @@ def main():
         # 2. Detect objects
         objects = detect_objects(frame_filename)
         logging.info(f"Detected objects: {objects}")
-
+        
+        #Get the environment type
+        environment = get_environment(image_path) or "unknown environment"
+        logging.info(f"Environment type: {environment}")
+        
         # 3. Generate environment description
-        description = generate_description(objects)
+        description = generate_description(objects,environment)
 
         # 4. Convert description to audio
         audio_file = text_to_speech(description, "environment_description.mp3")
