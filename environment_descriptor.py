@@ -215,7 +215,7 @@ def capture_frame(camera_index: int = 0) -> str:
         raise Exception("Failed to capture frame from camera")
 
     # Rotate the frame
-    # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
     # Save the frame
     timestamp = int(time.time())
