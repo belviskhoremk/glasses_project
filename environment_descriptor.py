@@ -21,8 +21,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 hugging_face_api_key = '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'
 arch = 'resnet50'
 # Load LLaMA model from Hugging Face
-text_generator = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct", huggingfacehub_api_token = hugging_face_api_key, task='text-generation', model_kwargs={"temperature": 0.9, "max_new_token":100})
+# text_generator = HuggingFaceHub(repo_id = "microsoft/Phi-3.5-mini-instruct", huggingfacehub_api_token = hugging_face_api_key, task='text-generation', model_kwargs={"temperature": 0.9, "max_new_token":100})
+from langchain_openai import ChatOpenAI
 
+openai_api_key = 'sk-proj-yCZnQRlv9lPTz4ONFqaOT3BlbkFJUap0kXNVuPLN3rCzFhFf'
+text_generator = ChatOpenAI(model='gpt-4o-mini', openai_api_key=openai_api_key)
 env_model_file = 'resnet_model/resnet50_places365.pth.tar'
 
 
@@ -116,8 +119,10 @@ def generate_description(objects: List[Tuple[str, Tuple[float, float, float, flo
         objects_with_positions.append(f"{obj} in the {position}")
 
     # Create a more focused prompt template
-    template = f"""
-    Provide a concise description of the environment for a blind person. Focus on:
+    template = """
+    Provide a concise description of the environment for a blind person. 
+    Do not make up any data. Just describe the objects that were detected. 
+    Focus on:
     1. Main objects and their relative positions
     2. Any potential obstacles or hazards
     3. General layout and space description
@@ -128,12 +133,18 @@ def generate_description(objects: List[Tuple[str, Tuple[float, float, float, flo
     Description:
     """
 
-    prompt = PromptTemplate(input_variables=["objects_with_positions","environment"], template=template)
-    llm_chain = LLMChain(llm=text_generator, prompt=prompt)
-    full_description = llm_chain.run(objects_with_positions=", ".join(objects_with_positions))
+    # prompt = PromptTemplate(input_variables=["objects_with_positions","environment"], template=template)
+    # llm_chain = LLMChain(llm=text_generator, prompt=prompt)
+    # full_description = llm_chain.run(objects_with_positions=", ".join(objects_with_positions))
+    from langchain_core.prompts import ChatPromptTemplate
 
+    chat_template = ChatPromptTemplate.from_template(template)
+    chain = chat_template | text_generator
+    full_description = chain.invoke({"objects_with_positions": objects_with_positions, 'environment':environment})
+    print(full_description)
+    description = full_description.content
     # Extract only the description part
-    description = full_description.split("Description:")[1].strip()
+    # description = full_description.split("Description:")[1].strip()
 
     # Post-process the description
     description = description.replace("The environment contains", "There is")
@@ -178,7 +189,7 @@ def play_audio(file_path: str):
     logging.info("Finished playing audio")
 
 
-def capture_frame(camera_index: int = 3) -> str:
+def capture_frame(camera_index: int = 0) -> str:
     """
     Capture a frame from the camera and save it as an image file.
     Includes a warm-up period and a delay before capture to improve frame quality.
@@ -204,7 +215,7 @@ def capture_frame(camera_index: int = 3) -> str:
         raise Exception("Failed to capture frame from camera")
 
     # Rotate the frame
-    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
     # Save the frame
     timestamp = int(time.time())
@@ -255,10 +266,10 @@ def describe_environment():
         audio_file = text_to_speech(description, "environment_description.mp3")
 
         # 5. Speed up the audio (optional)
-        fast_audio_file = speed_up_audio(audio_file, speed=1.3, output_file="environment_description_fast.mp3")
+        # fast_audio_file = speed_up_audio(audio_file, speed=1.3, output_file="environment_description_fast.mp3")
 
         # 6. Play the audio
-        play_audio(fast_audio_file)
+        play_audio(audio_file)
 
         # 7. Clean up - delete the captured frame
         delete_frame(frame_filename)
@@ -268,6 +279,6 @@ def describe_environment():
 
 
 
-# if __name__ == "__main__":
-#     describe_environment()
+if __name__ == "__main__":
+    describe_environment()
 
