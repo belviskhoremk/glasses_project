@@ -11,6 +11,7 @@ import pygame
 from pydub import AudioSegment
 import logging
 import os
+import time
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 hugging_face_api_key = ''
@@ -129,31 +130,87 @@ def play_audio(file_path: str):
     logging.info("Finished playing audio")
 
 
-def main(image_path: str):
+# def main(image_path: str):
+#     """
+#     Main function to run the entire pipeline.
+#     """
+#     try:
+#         # 1. Detect objects
+#         objects = detect_objects(image_path)
+#         logging.info(f"Detected objects: {objects}")
+#
+#         # 2. Generate environment description
+#         description = generate_description(objects)
+#
+#         # 3. Convert description to audio
+#         audio_file = text_to_speech(description, "environment_description.mp3")
+#
+#         # 4. Speed up the audio (optional)
+#         fast_audio_file = speed_up_audio(audio_file, speed=1.3, output_file="environment_description_fast.mp3")
+#
+#         # 5. Play the audio
+#         play_audio(fast_audio_file)
+#
+#     except Exception as e:
+#         logging.error(f"An error occurred: {str(e)}")
+
+def capture_frame(camera_index: int = 2) -> str:
     """
-    Main function to run the entire pipeline.
+    Capture a frame from the camera and save it as an image file.
+    """
+    cap = cv2.VideoCapture(camera_index)
+    ret, frame = cap.read()
+    cap.release()
+
+    if not ret:
+        raise Exception("Failed to capture frame from camera")
+
+    timestamp = int(time.time())
+    filename = f"frame_{timestamp}.jpg"
+    cv2.imwrite(filename, frame)
+    logging.info(f"Captured frame saved as {filename}")
+    return filename
+
+def delete_frame(filename: str):
+    """
+    Delete the captured frame file.
     """
     try:
-        # 1. Detect objects
-        objects = detect_objects(image_path)
+        os.remove(filename)
+        logging.info(f"Deleted frame file: {filename}")
+    except Exception as e:
+        logging.error(f"Error deleting frame file {filename}: {str(e)}")
+
+def main():
+    """
+    Main function to run the entire pipeline using camera input.
+    """
+    try:
+        # 1. Capture frame from camera
+        frame_filename = capture_frame()
+
+        # 2. Detect objects
+        objects = detect_objects(frame_filename)
         logging.info(f"Detected objects: {objects}")
 
-        # 2. Generate environment description
+        # 3. Generate environment description
         description = generate_description(objects)
 
-        # 3. Convert description to audio
+        # 4. Convert description to audio
         audio_file = text_to_speech(description, "environment_description.mp3")
 
-        # 4. Speed up the audio (optional)
+        # 5. Speed up the audio (optional)
         fast_audio_file = speed_up_audio(audio_file, speed=1.3, output_file="environment_description_fast.mp3")
 
-        # 5. Play the audio
+        # 6. Play the audio
         play_audio(fast_audio_file)
+
+        # 7. Clean up - delete the captured frame
+        delete_frame(frame_filename)
 
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
 
-
-
 if __name__ == "__main__":
-    main("/home/belvisk/Downloads/Highway1.jpg")
+    main()
+
