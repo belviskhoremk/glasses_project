@@ -1,7 +1,5 @@
 import cv2
 from typing import List, Tuple
-import numpy as np
-import pyttsx3
 from langchain_community.llms import HuggingFaceHub
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
@@ -11,26 +9,21 @@ import pygame
 from pydub import AudioSegment
 import logging
 import os
-import time
 import torch
 from torch.autograd import Variable as V
 import torchvision.models as models
 from torchvision import transforms as trn
 from torch.nn import functional as F
-import os
 from PIL import Image
-
 import time
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 hugging_face_api_key = ''
-# Initialize TTS engine
-engine = pyttsx3.init()
-
+arch = 'resnet50'
 # Load LLaMA model from Hugging Face
 text_generator = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct", huggingfacehub_api_token = hugging_face_api_key, task='text-generation', model_kwargs={"temperature": 0.9, "max_new_token":100})
 
-env_model_file = 'glasses_project/resnet_model/resnet50_places365.pth.tar'
+env_model_file = 'resnet_model/resnet50_places365.pth.tar'
 
 
 def get_environment(img_path):
@@ -52,7 +45,7 @@ def get_environment(img_path):
     ])
 
     # load the class label
-    file_name = 'glasses_project/resnet_model/categories_places365.txt'
+    file_name = 'resnet_model/categories_places365.txt'
     classes = list()
     with open(file_name) as class_file:
         for line in class_file:
@@ -185,36 +178,14 @@ def play_audio(file_path: str):
     logging.info("Finished playing audio")
 
 
-# def main(image_path: str):
-#     """
-#     Main function to run the entire pipeline.
-#     """
-#     try:
-#         # 1. Detect objects
-#         objects = detect_objects(image_path)
-#         logging.info(f"Detected objects: {objects}")
-#
-#         # 2. Generate environment description
-#         description = generate_description(objects)
-#
-#         # 3. Convert description to audio
-#         audio_file = text_to_speech(description, "environment_description.mp3")
-#
-#         # 4. Speed up the audio (optional)
-#         fast_audio_file = speed_up_audio(audio_file, speed=1.3, output_file="environment_description_fast.mp3")
-#
-#         # 5. Play the audio
-#         play_audio(fast_audio_file)
-#
-#     except Exception as e:
-#         logging.error(f"An error occurred: {str(e)}")
 
-def capture_frame(camera_index: int = 2) -> str:
+def capture_frame(camera_index: int = 3) -> str:
     """
     Capture a frame from the camera and save it as an image file.
     """
     cap = cv2.VideoCapture(camera_index)
     ret, frame = cap.read()
+    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
     cap.release()
 
     if not ret:
@@ -248,11 +219,8 @@ def main():
         objects = detect_objects(frame_filename)
         logging.info(f"Detected objects: {objects}")
 
-        # 3. Generate environment description
-        description = generate_description(objects)
-
         #Get the environment type
-        environment = get_environment(image_path) or "unknown environment"
+        environment = get_environment(frame_filename) or "unknown environment"
         logging.info(f"Environment type: {environment}")
 
         # 3. Generate environment description
