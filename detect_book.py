@@ -5,16 +5,16 @@ import numpy as np
 from paddleocr import PaddleOCR
 from gtts import gTTS
 import pygame
-from langchain_community.llms import HuggingFaceHub
+# from langchain_community.llms import HuggingFaceHub
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
-
+openai_api_key = 'sk-proj-yCZnQRlv9lPTz4ONFqaOT3BlbkFJUap0kXNVuPLN3rCzFhFf'
 hugging_face_api_key = "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"
-llm_llama = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct" ,huggingfacehub_api_token = hugging_face_api_key)
-# llm_gpt4 = ChatOpenAI(model='gpt-4o-mini', openai_api_key=)
+# llm_llama = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct" ,huggingfacehub_api_token = hugging_face_api_key)
+llm_gpt4 = ChatOpenAI(model='gpt-4o-mini', openai_api_key=openai_api_key)
 # Load the YOLOv8 model
-model = YOLO("yolov8n.pt")  # Load a pretrained model (recommended for training)
+model = YOLO("yolov8l.pt")  # Load a pretrained model (recommended for training)
 
 
 def detect_and_crop_book(frame, model):
@@ -48,7 +48,7 @@ def open_camera_and_detect_book(model):
     """
     Function to open the camera, capture multiple frames, detect the book, and return the cropped book image.
     """
-    cap = cv2.VideoCapture(2)  # Open the default camera
+    cap = cv2.VideoCapture(0)  # Open the default camera
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
 
@@ -173,7 +173,7 @@ def read_book():
             full_text = ' '.join(extracted_text)
 
             print(f"Extracted Text: {full_text}")
-            organized_response = completed_response(full_text , llm_llama)
+            organized_response = completed_response(full_text , llm_gpt4)
             # Convert text to speech and play the audio
             audio_file = text_to_speech(organized_response)
             play_audio(audio_file)
