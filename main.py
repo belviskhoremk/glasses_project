@@ -40,7 +40,7 @@ def audio_callback(indata, frames, time, status):
             sound_data = text_to_speech("detecting environment please wait a while to process the environment")
             play_audio(sound_data)
             describe_environment()
-            sound_data = text_to_speech("Finished environment description, give instruct for more environment description ")
+            sound_data = text_to_speech("Finished environment description")
             play_audio(sound_data)
 
             # Add your functionality for "recognize environment" here

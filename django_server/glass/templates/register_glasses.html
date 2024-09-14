@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register New Glasses</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.3.0/alpine.js" integrity="sha512-nIwdJlD5/vHj23CbO2iHCXtsqzdTTx3e3uAmpTm4x2Y8xCIFyWu4cSIV8GaGe2UNVq86/1h9EgUZy7tn243qdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        .form-input, .form-select {
+            @apply w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-purple-600;
+        }
+        .form-label {
+            @apply block mb-2 text-sm font-bold text-gray-700;
+        }
+        .btn {
+            @apply px-4 py-2 font-bold text-white bg-purple-600 rounded-full hover:bg-purple-700 focus:outline-none focus:shadow-outline transition duration-300;
+        }
+        .error {
+            @apply text-red-500 text-xs italic mt-1;
+        }
+        .gradient-bg {
+            background: linear-gradient(90deg, #4F46E5, #7C3AED);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex space-x-7">
+                <a href="/" class="flex items-center">
+                    <i class="fas fa-glasses text-2xl text-purple-600 mr-2"></i>
+                    <span class="font-semibold text-gray-500 text-lg">SmartVision</span>
+                </a>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'glasses_landing' %}" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded transition duration-300">Glasses</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl m-4">
+            <div class="p-8">
+                <h1 class="text-3xl font-bold mb-6 text-center text-purple-600">Register New Glasses</h1>
+
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} rounded">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" id="glasses-form">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-4">
+                        <label class="form-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <p class="error">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="flex items-center justify-center">
+                        <button class="btn" type="submit">
+                            Register
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const form = document.getElementById('glasses-form');
+            const inputs = form.querySelectorAll('input, select');
+
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('transform', 'scale-105', 'transition', 'duration-300');
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('transform', 'scale-105', 'transition', 'duration-300');
+                });
+            });
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Add loading state to button
+                const button = form.querySelector('button[type="submit"]');
+                button.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Registering...';
+                button.disabled = true;
+
+                // Submit the form
+                setTimeout(() => form.submit(), 1000);  // Simulate a delay for demo purposes
+            });
+        });
+    </script>
+</body>
+</html>

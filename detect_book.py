@@ -9,7 +9,7 @@ import pygame
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
-openai_api_key = 'sk-proj-yCZnQRlv9lPTz4ONFqaOT3BlbkFJUap0kXNVuPLN3rCzFhFf'
+openai_api_key = ''
 hugging_face_api_key = "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"
 # llm_llama = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct" ,huggingfacehub_api_token = hugging_face_api_key)
 llm_gpt4 = ChatOpenAI(model='gpt-4o-mini', openai_api_key=openai_api_key)

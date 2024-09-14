@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glasses Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.3.0/alpine.js" integrity="sha512-nIwdJlD5/vHj23CbO2iHCXtsqzdTTx3e3uAmpTm4x2Y8xCIFyWu4cSIV8GaGe2UNVq86/1h9EgUZy7tn243qdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        [x-cloak] { display: none; }
+        .glass-card {
+            @apply bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl;
+        }
+        .gradient-bg {
+            background: linear-gradient(90deg, #4F46E5, #7C3AED);
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-100" x-data="{ showModal: false, selectedGlass: null }">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex space-x-7">
+                <a href="/" class="flex items-center">
+                    <i class="fas fa-glasses text-2xl text-purple-600 mr-2"></i>
+                    <span class="font-semibold text-gray-500 text-lg">SmartVision</span>
+                </a>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'register_glasses' %}" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded transition duration-300">Add New Glasses</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="container mx-auto p-6">
+        <h2 class="text-4xl font-bold text-gray-800 mb-6">Glasses Dashboard</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for glass in glasses %}
+            <div class="glass-card cursor-pointer" @click="selectedGlass = {{ glass|safe }}; showModal = true;">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-800">{{ glass.glass_model }}</h2>
+                    <p class="text-gray-600">ID: {{ glass.glass_id }}</p>
+                    <p class="text-gray-600">Owner: {{ glass.first_name }} {{ glass.last_name }}</p>
+                    <p class="text-gray-600">Language: {{ glass.language }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div x-show="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" x-cloak>
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center" x-show="selectedGlass">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" x-text="selectedGlass.glass_model"></h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" x-text="'ID: ' + selectedGlass.glass_id"></p>
+                    <p class="text-sm text-gray-500" x-text="'Owner: ' + selectedGlass.first_name + ' ' + selectedGlass.last_name"></p>
+                    <p class="text-sm text-gray-500" x-text="'Language: ' + selectedGlass.language"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button @click="showModal = false" class="px-4 py-2 bg-purple-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
