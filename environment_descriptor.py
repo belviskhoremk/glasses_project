@@ -16,6 +16,7 @@ from torchvision import transforms as trn
 from torch.nn import functional as F
 from PIL import Image
 import time
+import requests
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 hugging_face_api_key = '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'
@@ -94,44 +95,46 @@ def generate_description(objects: List[Tuple[str, Tuple[float, float, float, flo
     """
     Generate a concise and precise description of the environment based on detected objects and their positions.
     """
-    # Format object information with positions
+    image_width = 640
+    image_height = 480
+
     objects_with_positions = []
+
     for obj, (x1, y1, x2, y2) in objects:
+        # Calculate the center of the bounding box
         center_x = (x1 + x2) / 2
         center_y = (y1 + y2) / 2
 
-        # More precise positioning
-        if center_x < 0.33:
-            x_pos = "left"
-        elif center_x < 0.66:
-            x_pos = "center"
+        # Determine the position in terms of quadrants
+        if center_x < image_width / 2:
+            if center_y < image_height / 2:
+                position = "left upper corner"
+            else:
+                position = "left bottom corner"
         else:
-            x_pos = "right"
+            if center_y < image_height / 2:
+                position = "right upper corner"
+            else:
+                position = "right bottom corner"
 
-        if center_y < 0.33:
-            y_pos = "top"
-        elif center_y < 0.66:
-            y_pos = "middle"
-        else:
-            y_pos = "bottom"
-
-        position = f"{y_pos}-{x_pos}" if y_pos != "middle" else x_pos
+        # Append object with position to the list
         objects_with_positions.append(f"{obj} in the {position}")
 
     # Create a more focused prompt template
     template = """
-    Provide a concise description of the environment for a blind person. 
-    Do not make up any data. Just describe the objects that were detected. 
-    Focus on:
-    1. Main objects and their relative positions
-    2. Any potential obstacles or hazards
-    3. General layout and space description
+          You are provided with a set of objects and their positions within a specific environment.
+          Please generate a cohesive and concise description that combines only the provided objects and their positions within the {environment}.
+          Do not add any external information.
+          The description is for a blind person, to allow him to navigate and find things easily. Be really concise and do not make up data.
 
-    Objects detected: {objects_with_positions}
-    environment type: {environment}
+          Objects detected: {objects_with_positions}
 
-    Description:
-    """
+          Environment type: {environment}
+
+          Your task is to create a fluent description that mentions each object along with its position and how it fits into the environment.
+
+          Description:
+        """
 
     # prompt = PromptTemplate(input_variables=["objects_with_positions","environment"], template=template)
     # llm_chain = LLMChain(llm=text_generator, prompt=prompt)
@@ -156,11 +159,11 @@ def generate_description(objects: List[Tuple[str, Tuple[float, float, float, flo
     return description
 
 
-def text_to_speech(text: str, output_file: str = "output.mp3") -> str:
+def text_to_speech(text: str, lang:str, output_file: str = "output.mp3") -> str:
     """
     Convert text to speech and save as an audio file.
     """
-    tts = gTTS(text, lang='en', tld='com')
+    tts = gTTS(text, lang=lang, tld='com')
     tts.save(output_file)
     logging.info(f"Text-to-speech audio saved to {output_file}")
     return output_file
@@ -215,8 +218,9 @@ def capture_frame(camera_index: int = 0) -> str:
         raise Exception("Failed to capture frame from camera")
 
     # Rotate the frame
-    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
+    frame = cv2.resize(frame, (640, 480))
     # Save the frame
     timestamp = int(time.time())
     filename = f"frame_{timestamp}.jpg"
@@ -237,8 +241,9 @@ def delete_frame(filename: str):
 
 from deep_translator import GoogleTranslator
 
-def translate_text(text, dest_language='hindi'):
-    translated = GoogleTranslator(source='auto', target=dest_language).translate(text)
+def translate_text(text, dest_language='english'):
+
+    translated = GoogleTranslator(source='auto', target=dest_language, ).translate(text)
     print(f"Translated: {translated}")
     return translated
 
@@ -247,6 +252,19 @@ def describe_environment():
     Main function to run the entire pipeline using camera input.
     """
     try:
+        dest_language = None
+        response = requests.post('http://34.27.59.179/glass/glass_detail/', json={"glass_id": "2"}).json()
+        if response:
+            # print(response.content)
+            dest_language = response['language']
+            if dest_language=='french':
+                dest_language='fr'
+            elif dest_language=='english':
+                dest_language='en'
+            elif dest_language=='hindi':
+                dest_language='hi'
+            else:
+                dest_language = None
         # 1. Capture frame from camera
         frame_filename = capture_frame()
 
@@ -260,10 +278,12 @@ def describe_environment():
 
         # 3. Generate environment description
         description = generate_description(objects,environment)
-        # description = translate_text(description)
-
+        if dest_language is not None:
+            description = translate_text(description, dest_language=dest_language)
+        else:
+            description = translate_text(description)
         # 4. Convert description to audio
-        audio_file = text_to_speech(description, "environment_description.mp3")
+        audio_file = text_to_speech(description, dest_language, "environment_description.mp3")
 
         # 5. Speed up the audio (optional)
         # fast_audio_file = speed_up_audio(audio_file, speed=1.3, output_file="environment_description_fast.mp3")
@@ -273,6 +293,7 @@ def describe_environment():
 
         # 7. Clean up - delete the captured frame
         delete_frame(frame_filename)
+        os.remove(audio_file)
 
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
