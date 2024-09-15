@@ -19,13 +19,13 @@ import time
 import requests
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-hugging_face_api_key = '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'
+hugging_face_api_key = ''
 arch = 'resnet50'
 # Load LLaMA model from Hugging Face
 # text_generator = HuggingFaceHub(repo_id = "microsoft/Phi-3.5-mini-instruct", huggingfacehub_api_token = hugging_face_api_key, task='text-generation', model_kwargs={"temperature": 0.9, "max_new_token":100})
 from langchain_openai import ChatOpenAI
 
-openai_api_key = 'sk-proj-yCZnQRlv9lPTz4ONFqaOT3BlbkFJUap0kXNVuPLN3rCzFhFf'
+openai_api_key = ''
 text_generator = ChatOpenAI(model='gpt-4o-mini', openai_api_key=openai_api_key)
 env_model_file = 'resnet_model/resnet50_places365.pth.tar'
 
@@ -192,7 +192,7 @@ def play_audio(file_path: str):
     logging.info("Finished playing audio")
 
 
-def capture_frame(camera_index: int = 0) -> str:
+def capture_frame(camera_index: int = 3) -> str:
     """
     Capture a frame from the camera and save it as an image file.
     Includes a warm-up period and a delay before capture to improve frame quality.
@@ -218,7 +218,7 @@ def capture_frame(camera_index: int = 0) -> str:
         raise Exception("Failed to capture frame from camera")
 
     # Rotate the frame
-    # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
     frame = cv2.resize(frame, (640, 480))
     # Save the frame
@@ -300,6 +300,6 @@ def describe_environment():
 
 
 
-if __name__ == "__main__":
-    describe_environment()
+# if __name__ == "__main__":
+#     describe_environment()
 
