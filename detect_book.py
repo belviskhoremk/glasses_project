@@ -9,7 +9,8 @@ import pygame
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
-openai_api_key = ''
+
+openai_api_key = 'sk-proj-yCZnQRlv9lPTz4ONFqaOT3BlbkFJUap0kXNVuPLN3rCzFhFf'
 hugging_face_api_key = "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"
 # llm_llama = HuggingFaceHub(repo_id = "meta-llama/Meta-Llama-3-8B-Instruct" ,huggingfacehub_api_token = hugging_face_api_key)
 llm_gpt4 = ChatOpenAI(model='gpt-4o-mini', openai_api_key=openai_api_key)
@@ -140,24 +141,30 @@ def play_audio(audio_file):
 
 def completed_response(text, llm):
     template = f"""
-    You are an AI designed to help with paragraph completion based on the following text:
+    You are an AI assistant designed to complete paragraphs or sentences extracted from book images using OCR. 
+    Your task is to analyze the following text and complete it ONLY if there are unfinished ideas or cut-off sentences:
+
     Text: {text}
 
-    The above text is extracted from a book picture using OCR. Your task is to complete any cut-off ideas in the extracted text based on the context. If the text is fully extracted and forms a complete idea,
-    you don't need to add extra content or don't replace words with other synonym. 
-    
-    Complete the text:
+    Instructions:
+    1. If the text is complete and forms a coherent idea, do not add any additional content. Return the original text as is.
+    2. If there are incomplete sentences or cut-off ideas at the end, complete them based on the context provided.
+    3. Do not replace existing words with synonyms or rephrase complete sentences.
+    4. Do not add explanations or elaborations beyond completing unfinished ideas.
+    5. If the words are not part of english dictionary try to change them the most closest word based on the context
+
+    Completed text:
     """
 
     chat_template = ChatPromptTemplate.from_template(template)
     chain = chat_template | llm
     response = chain.invoke({"text": text})
+
     # print("response:", response)
     #
     #
     # extracted_response = response.split("Complete the text:")[-1].strip()
     # print("extracted response:", extracted_response)
-
 
     return response.content
 
