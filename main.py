@@ -63,10 +63,7 @@ finally:
     porcupine.delete()
 
 
-# from text_extract import extract_text
-# from text_to_speech import text_to_speech, play_audio
-#
-#
+
 # def extract_play(path):
 #
 #     try:
