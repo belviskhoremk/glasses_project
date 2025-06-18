@@ -11,7 +11,7 @@ This project is a smart glasses system designed to assist visually impaired indi
 
 - 📖 **Book Reading Mode**: Captures text from a book and reads it aloud.
 - 🌍 **Environment Description Mode**: Detects objects and their spatial context and narrates them.
-- 🎤 **Voice Activation**: Activate modes using trigger words like `"book"` and `"environment"`.
+- 🎤 **Voice Activation**: Activate modes using trigger words like `"read book"` and `"environment"`.
 - 🌐 **Multilingual Support**: Select your preferred language during registration.
 - ☁️ **Cloud Integration**: Uses Google Cloud APIs to process OCR and NLP tasks.
 - 🧠 **LLM-based Text Refinement**: Improves extracted text with models like LLaMA 2.7 and GPT.
